@@ -7,9 +7,9 @@ edition = "2021"
 
 [workspace]
 members = [
-    "rustc_lexer",
-    "rustc_ast",
-    "rustc_parse",
+    "rusttc_lexer",
+    "rusttc_ast",
+    "rusttc_parse",
 ]
 
 [dependencies]

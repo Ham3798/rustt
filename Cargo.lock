@@ -3,17 +3,17 @@
 version = 3
 
 [[package]]
-name = "rustc_lexer"
-version = "0.1.0"
-
-[[package]]
-name = "rustc_parse"
-version = "0.1.0"
-
-[[package]]
 name = "rustt"
 version = "0.1.0"
 
 [[package]]
 name = "rusttc_ast"
+version = "0.1.0"
+
+[[package]]
+name = "rusttc_lexer"
+version = "0.1.0"
+
+[[package]]
+name = "rusttc_parse"
 version = "0.1.0"
