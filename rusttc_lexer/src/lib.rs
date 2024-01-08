@@ -2,7 +2,7 @@ mod cursor;
 
 use cursor::Cursor;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum TokenKind {
     Ident,
     Number,
@@ -16,14 +16,14 @@ pub enum TokenKind {
     Eof,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct Token {
     pub kind: TokenKind,
     pub text: String,
 }
 
 impl Token {
-    fn new(kind: TokenKind, text: String) -> Self {
+    pub fn new(kind: TokenKind, text: String) -> Self {
         Token { kind, text }
     }
 }
