@@ -14,8 +14,12 @@ impl<'a> Cursor<'a> {
         char
     }
 
-    pub(crate) fn peek(&self) -> char {
+    pub(crate) fn first(&self) -> char {
         self.input.chars().nth(self.pos).unwrap_or('\0')
+    }
+
+    pub(crate) fn second(&self) -> char {
+        self.input.chars().nth(self.pos+1).unwrap_or('\0')
     }
 
     pub(crate) fn is_eof(&self) -> bool {
@@ -47,7 +51,7 @@ mod tests {
     #[test]
     fn test_peek() {
         let cursor = Cursor::new("abc");
-        assert_eq!(cursor.peek(), 'a');
+        assert_eq!(cursor.first(), 'a');
         // `peek` should not advance the position
         assert_eq!(cursor.pos, 0);
     }
