@@ -104,6 +104,10 @@ pub enum TokenKind {
     Caret,
     /// "%"
     Percent,
+    /// "'"
+    CharLiteral,
+    /// """
+    StringLiteral,
 
     /// 나중에 삭제 예정
     Error,
@@ -270,7 +274,29 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                     },
                 }
             },
-
+            '\'' => {
+                let mut literal = cur.to_string();
+                while !cursor.is_eof() && cursor.first() != '\'' {
+                    literal.push(cursor.bump());
+                }
+                if !cursor.is_eof() {
+                    literal.push(cursor.bump()); // 마지막 단일 따옴표 추가
+                }
+                Token::new(TokenKind::CharLiteral, literal)
+            },
+            '"' => {
+                let mut literal = cur.to_string();
+                while !cursor.is_eof() && cursor.first() != '"' {
+                    literal.push(cursor.bump());
+                }
+                if !cursor.is_eof() {
+                    literal.push(cursor.bump()); // 마지막 이중 따옴표 추가
+                    Token::new(TokenKind::StringLiteral, literal)
+                }
+                else {
+                    Token::new(TokenKind::Error, literal)
+                }
+            },
             '^' => Token::new(TokenKind::Caret, cur.to_string()),
             '%' => Token::new(TokenKind::Percent, cur.to_string()),
             ('0'..='9') => {
@@ -379,6 +405,13 @@ mod tests {
         assert_eq!(tokens[8].kind, TokenKind::Ident);
         assert_eq!(tokens[8].text, "println");
         assert_eq!(tokens[9].text, "!");
+        assert_eq!(tokens[10].kind, TokenKind::OpenParen);
+        assert_eq!(tokens[11].kind, TokenKind::StringLiteral);
+        assert_eq!(tokens[11].text, "\"Hello, world!\"");
+        assert_eq!(tokens[12].kind, TokenKind::CloseParen);
+        assert_eq!(tokens[13].kind, TokenKind::Semi);
+        assert_eq!(tokens[14].kind, TokenKind::Whitespace);
+        assert_eq!(tokens[15].kind, TokenKind::CloseBrace);
     }
 
     // ... 추가적인 테스트 케이스들 ...
