@@ -1,29 +1,29 @@
 pub struct Cursor<'a> {
     input: &'a str,
-    pos: usize,
+    len: usize,
 }
 
 impl<'a> Cursor<'a> {
     pub fn new(input: &'a str) -> Self {
-        Cursor { input, pos: 0 }
+        Cursor { input, len: 0 }
     }
 
     pub(crate) fn bump(&mut self) -> char {
-        let char = self.input.chars().nth(self.pos).unwrap_or('\0');
-        self.pos += 1;
+        let char = self.input.chars().nth(self.len).unwrap_or('\0');
+        self.len += 1;
         char
     }
 
     pub(crate) fn first(&self) -> char {
-        self.input.chars().nth(self.pos).unwrap_or('\0')
+        self.input.chars().nth(self.len).unwrap_or('\0')
     }
 
     pub(crate) fn second(&self) -> char {
-        self.input.chars().nth(self.pos+1).unwrap_or('\0')
+        self.input.chars().nth(self.len+1).unwrap_or('\0')
     }
 
     pub(crate) fn is_eof(&self) -> bool {
-        self.pos >= self.input.len()
+        self.len >= self.input.len()
     }
 }
 
@@ -36,7 +36,7 @@ mod tests {
         let input = "Hello, world!";
         let cursor = Cursor::new(input);
         assert_eq!(cursor.input, input);
-        assert_eq!(cursor.pos, 0);
+        assert_eq!(cursor.len, 0);
     }
 
     #[test]
@@ -52,8 +52,8 @@ mod tests {
     fn test_peek() {
         let cursor = Cursor::new("abc");
         assert_eq!(cursor.first(), 'a');
-        // `peek` should not advance the position
-        assert_eq!(cursor.pos, 0);
+        // `peek` should not advance the lenition
+        assert_eq!(cursor.len, 0);
     }
 
     #[test]

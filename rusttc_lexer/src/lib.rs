@@ -2,7 +2,7 @@ mod cursor;
 
 use cursor::Cursor;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum TokenKind {
     // Multi-char tokens:
     /// "// comment"
@@ -148,13 +148,13 @@ pub enum TokenKind {
 //     Hexadecimal = 16,
 // }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum DocStyle {
     Outer, 
     Inner,
 }
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Token {
     pub kind: TokenKind,
     pub text: String,
@@ -175,7 +175,7 @@ pub fn tokenize(input: &str) -> Vec<Token> {
         let token = match cur {
             // Handling whitespace
             ' ' | '\t' | '\r' | '\n' => {
-                let whitespace = consume_while(&mut cursor, |c| c.is_whitespace());
+                let whitespace = cur.to_string() + &consume_while(&mut cursor, |c| c.is_whitespace());
                 Token::new(TokenKind::Whitespace, whitespace)
             },
 
@@ -274,11 +274,11 @@ pub fn tokenize(input: &str) -> Vec<Token> {
             '^' => Token::new(TokenKind::Caret, cur.to_string()),
             '%' => Token::new(TokenKind::Percent, cur.to_string()),
             ('0'..='9') => {
-                let num = consume_while(&mut cursor, |a| a.is_digit(10));
+                let num = cur.to_string() + &consume_while(&mut cursor, |a| a.is_digit(10));
                 Token::new(TokenKind::Literal , num.to_string())
             },
             'a'..='z' | 'A'..='Z' => {
-                let str = consume_while(&mut cursor, |a| a.is_alphabetic());
+                let str = cur.to_string() + &consume_while(&mut cursor, |a| a.is_alphabetic());
                 Token::new(TokenKind::Ident, str.to_string())
             },
             '\0' => Token::new(TokenKind::EOF, cur.to_string()),
@@ -297,4 +297,89 @@ where
         result.push(cursor.bump());
     }
     result
+}
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_whitespace() {
+        let input = "   \t\n";
+        let tokens = tokenize(input);
+        assert_eq!(tokens.len(), 1);
+        assert_eq!(tokens[0].kind, TokenKind::Whitespace);
+        assert_eq!(tokens[0].text, "   \t\n");
+    }
+
+    #[test]
+    fn test_identifiers() {
+        let input = "abc def";
+        let tokens = tokenize(input);
+        assert_eq!(tokens.len(), 3); // includes whitespace
+        assert_eq!(tokens[0].kind, TokenKind::Ident);
+        assert_eq!(tokens[0].text, "abc");
+        assert_eq!(tokens[2].kind, TokenKind::Ident);
+        assert_eq!(tokens[2].text, "def");
+    }
+
+    #[test]
+    fn test_line_comment() {
+        let input = "// this is a comment";
+        let tokens = tokenize(input);
+        assert_eq!(tokens.len(), 1);
+        assert_eq!(tokens[0].kind, TokenKind::LineComment { doc_style: None });
+        assert_eq!(tokens[0].text, "// this is a comment");
+    }
+
+    #[test]
+    fn test_block_comment() {
+        let input = "/* this is a \n block comment */";
+        let tokens = tokenize(input);
+        assert_eq!(tokens.len(), 1);
+        assert_eq!(tokens[0].kind, TokenKind::BlockComment { doc_style: None, terminated: true });
+        assert_eq!(tokens[0].text, "/* this is a \n block comment */");
+    }
+
+    #[test]
+    fn test_multiline_comment() {
+        let input = "/* this is a \n multiline \n comment */";
+        let tokens = tokenize(input);
+        assert_eq!(tokens.len(), 1);
+        assert_eq!(tokens[0].kind, TokenKind::BlockComment { doc_style: None, terminated: true });
+        assert_eq!(tokens[0].text, "/* this is a \n multiline \n comment */");
+    }
+
+    #[test]
+    fn test_whitespace_with_newlines() {
+        let input = "   \n   \t\n";
+        let tokens = tokenize(input);
+        assert_eq!(tokens.len(), 1);
+        assert_eq!(tokens[0].kind, TokenKind::Whitespace);
+        assert_eq!(tokens[0].text, "   \n   \t\n");
+    }
+
+    #[test]
+    fn test_mixed_tokens_with_newlines() {
+        let input = "fn main() {\n    println!(\"Hello, world!\");\n}";
+        let tokens = tokenize(input);
+        assert_eq!(tokens[0].kind, TokenKind::Ident);
+        assert_eq!(tokens[0].text, "fn");
+        assert_eq!(tokens[1].kind, TokenKind::Whitespace);
+        assert_eq!(tokens[2].kind, TokenKind::Ident);
+        assert_eq!(tokens[2].text, "main");
+        assert_eq!(tokens[3].kind, TokenKind::OpenParen);
+        assert_eq!(tokens[3].text, "(");
+        assert_eq!(tokens[4].kind, TokenKind::CloseParen);
+        assert_eq!(tokens[4].text, ")");
+        assert_eq!(tokens[5].kind, TokenKind::Whitespace);
+        assert_eq!(tokens[6].kind, TokenKind::OpenBrace);
+        assert_eq!(tokens[7].kind, TokenKind::Whitespace);
+        assert_eq!(tokens[8].kind, TokenKind::Ident);
+        assert_eq!(tokens[8].text, "println");
+        assert_eq!(tokens[9].text, "!");
+    }
+
+    // ... 추가적인 테스트 케이스들 ...
 }
